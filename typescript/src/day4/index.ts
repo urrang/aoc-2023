@@ -3,11 +3,14 @@ import { readFile } from '../utils';
 const input = readFile('src/day4/input.txt');
 const lines = input.replace(/Card\s*\d+: /g, '').split('\n');
 
+const winCount = [];
+
 function part1() {
     let sum = 0;
 
-    for (const line of lines) {
-        const count = getWinningNumbersCount(line);
+    for (let i = 0; i < lines.length; i++) {
+        const count = getWinningNumbersCount(lines[i]);
+        winCount[i] = count;
         sum += count > 0 ? Math.pow(2, count - 1) : 0;
     }
 
@@ -20,7 +23,7 @@ function part2() {
 
     function processCard(index: number) {
         cardCount++;
-        const count = getWinningNumbersCount(lines[index]);
+        const count = winCount[index];
         if (count > 0) {
             for (let i = index + 1; i <= index + count; i++) {
                 processCard(i);
