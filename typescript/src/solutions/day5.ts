@@ -1,4 +1,3 @@
-import { get } from 'http';
 import { readFile } from '../utils';
 
 const example = `seeds: 79 14 55 13
@@ -39,57 +38,45 @@ humidity-to-location map:
 const input = readFile('src/inputs/day5.txt');
 
 const groups = input.split('\n\n');
+
 const seeds = groups
     .shift()
     .replace('seeds: ', '')
     .split(' ')
     .map(x => parseInt(x));
 
-// const [soilMap, fertilizerMap, waterMap, lightMap, tempMap, humidityMap, locationMap] = groups.map(x => parseMap(x))
-const maps = groups.map(x => parseMap(x))
 
-function parseMap(group: string) {
+const maps = groups.map((group) => {
     const lines = group.split('\n');
     lines.shift();
     return lines.map(line => {
         const values = line.split(' ');
+
         return {
             destStart: parseInt(values[0]),
             sourceStart: parseInt(values[1]),
-            length: parseInt(values[2])
+            sourceEnd: parseInt(values[1]) + parseInt(values[2]),
         };
-    });
-}
+    }).sort((a, b) => a.sourceStart - b.sourceStart);
+})
 
-function getDest(source: number, map: any[]) {
-    let dest = -1;
-
+function getDestination(source: number, map: any[]) {
     for (const item of map) {
-        if (source >= item.sourceStart && source < item.sourceStart + item.length) {
-            dest = item.destStart + (source - item.sourceStart);
-            break;
+        if (source >= item.sourceStart && source < item.sourceEnd) {
+            return item.destStart + (source - item.sourceStart);
         }
     }
 
-    return dest >= 0 ? dest : source;
+    return source;
 }
 
 function part1() {
-    // console.log('seeds', seeds);
-    // console.log('soil', soil);
-    // console.log('fertilizer', fertilizer);
-    // console.log('water', water);
-    // console.log('light', light);
-    // console.log('temp', temp);
-    // console.log('humidity', humidity);
-    // console.log('location', location);
-
     let minLocation = Infinity;
 
     for (const seed of seeds) {
         let value = seed;
         for (const map of maps) {
-            value = getDest(value, map);
+            value = getDestination(value, map);
         }
 
         if (value < minLocation) {
@@ -100,9 +87,30 @@ function part1() {
     console.log(minLocation);
 }
 
-function part2() {}
+function part2() {
+    let min = Infinity;
 
-export default function day4() {
+    for (let i = 0; i < seeds.length; i += 2) {
+        const first = seeds[i];
+        const last = seeds[i] + seeds[i + 1] - 1;
+
+        for (let j = first; j <= last; j++) {
+            let value = j;
+
+            for (const map of maps) {
+                value = getDestination(value, map);
+            }
+
+            if (value < min) {
+                min = value;
+            }
+        }
+    }
+
+    console.log(min);
+}
+
+export default function day5() {
     part1();
     part2();
 }
