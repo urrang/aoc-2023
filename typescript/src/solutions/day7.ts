@@ -1,4 +1,4 @@
-import { readFile } from '../utils';
+import { input } from 'src/input';
 
 enum HandScore {
     Nothing = 0,
@@ -10,7 +10,7 @@ enum HandScore {
     FiveOfAKind = 6
 }
 
-const lines = readFile('src/inputs/day7.txt').split('\n');
+const lines = input.split('\n');
 const charToValue = { 'T': 10, 'J': 11, 'Q': 12, 'K': 13, 'A': 14 };
 
 function parseData(includeJokers = false) {
@@ -104,7 +104,5 @@ function solve(useJokers = false) {
     return handsSorted.reduce((acc, hand, i) => acc + hand.bid * (i + 1), 0);
 }
 
-export default function day7() {
-    console.log(solve());
-    console.log(solve(true));
-}
+export const part1 = () => solve();
+export const part2 = () => solve(true);

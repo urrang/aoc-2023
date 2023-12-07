@@ -1,8 +1,6 @@
-import { readFile } from '../utils';
+import { input } from 'src/input';
 
-const input = readFile('src/day2/input.txt');
-
-function part1() {
+export function part1() {
     const bagCounts = { red: 12, green: 13, blue: 14 };
     let idSum = 0;
 
@@ -19,10 +17,10 @@ function part1() {
         }
     }
 
-    console.log(idSum);
+    return idSum;
 }
 
-function part2() {
+export function part2() {
     const sum = input.split('\n').reduce((sum, line) => {
         const cubeCounts = line.trim().split(': ')[1];
 
@@ -36,10 +34,5 @@ function part2() {
         return sum + (minCounts.red * minCounts.green * minCounts.blue);
     }, 0);
 
-    console.log(sum);
-}
-
-export default function day2() {
-    part1();
-    part2();
+    return sum;
 }

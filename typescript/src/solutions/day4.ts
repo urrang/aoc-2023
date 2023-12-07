@@ -1,11 +1,9 @@
-import { readFile } from '../utils';
-
-const input = readFile('src/day4/input.txt');
-const lines = input.replace(/Card\s*\d+: /g, '').split('\n');
+import { input } from 'src/input';
 
 const winCount = [];
 
-function part1() {
+export function part1() {
+    const lines = input.replace(/Card\s*\d+: /g, '').split('\n');
     let sum = 0;
 
     for (let i = 0; i < lines.length; i++) {
@@ -14,11 +12,12 @@ function part1() {
         sum += count > 0 ? Math.pow(2, count - 1) : 0;
     }
 
-    console.log(sum);
+    return sum;
 }
 
-function part2() {
-    console.time('part2');
+export function part2() {
+    const lines = input.replace(/Card\s*\d+: /g, '').split('\n');
+
     let cardCount = 0;
 
     function processCard(index: number) {
@@ -35,8 +34,7 @@ function part2() {
         processCard(i);
     }
 
-    console.timeEnd('part2');
-    console.log(cardCount);
+    return cardCount;
 }
 
 function getWinningNumbersCount(card: string): number {
@@ -49,9 +47,4 @@ function getWinningNumbersCount(card: string): number {
     }
 
     return count;
-}
-
-export default function day4() {
-    part1();
-    part2();
 }

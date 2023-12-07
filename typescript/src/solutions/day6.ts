@@ -1,8 +1,8 @@
-import { readFile } from '../utils';
+import { input } from 'src/input';
 
-const data = readFile('src/inputs/day6.txt').split('\n').map(line => line.match(/\d+/g));
+const data = input.split('\n').map(line => line.match(/\d+/g));
 
-function part1() {
+export function part1() {
     const games = data[0].map((time, i) => ({ time: parseInt(time), distance: parseInt(data[1][i]) }));
 
     let winCounts = [];
@@ -18,10 +18,10 @@ function part1() {
         winCounts.push(count);
     }
 
-    console.log(winCounts.reduce((a, b) => a * b));
+    return winCounts.reduce((a, b) => a * b);
 }
 
-function part2() {
+export function part2() {
     let time = parseInt(data[0].join(''));
     let distance = parseInt(data[1].join(''));
 
@@ -34,13 +34,5 @@ function part2() {
         }
     }
 
-    console.log(count);
+    return count;
 }
-
-export default function day6() {
-    part1();
-    part2();
-}
-
-
-

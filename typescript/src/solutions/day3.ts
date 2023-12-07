@@ -1,11 +1,9 @@
-import { readFile } from '../utils';
+import { input } from 'src/input';
 
-const input = readFile('src/day3/input.txt');
-const lines = input.split('\n');
-
-function part1() {
+export function part1() {
     let sum = 0;
 
+    const lines = input.split('\n');
     lines.forEach((line, index) => {
         const numbers = Array.from(line.matchAll(/\d+/g));
 
@@ -23,11 +21,13 @@ function part1() {
         });
     });
 
-    console.log(sum);
+    return sum;
 }
 
-function part2() {
+export function part2() {
     let sum = 0;
+
+    const lines = input.split('\n');
 
     lines.forEach((line, index) => {
         for (const asterisk of line.matchAll(/\*/g)) {
@@ -50,10 +50,5 @@ function part2() {
         }
     });
 
-    console.log(sum);
-}
-
-export default function day3() {
-    part1();
-    part2();
+    return sum;
 }

@@ -1,6 +1,6 @@
-import { readFile } from '../utils';
+import { input } from 'src/input';
 
-const groups = readFile('src/inputs/day5.txt').split('\n\n');
+const groups = input.split('\n\n');
 
 const seeds = groups
     .shift()
@@ -31,7 +31,7 @@ function getDestination(source: number, map: any[]) {
     return source;
 }
 
-function part1() {
+export function part1() {
     let minLocation = Infinity;
 
     for (const seed of seeds) {
@@ -45,7 +45,7 @@ function part1() {
         }
     }
 
-    console.log(minLocation);
+    return minLocation;
 }
 
 function isSeed(value: number) {
@@ -68,7 +68,7 @@ function getSource(dest: number, map: any[]) {
     return dest;
 }
 
-function part2() {
+export function part2() {
     const mapsReversed = maps.toReversed();
 
     let location = 0;
@@ -79,15 +79,9 @@ function part2() {
         }
 
         if (isSeed(value)) {
-            console.log(location);
-            break;
+            return location;
         }
 
         location++;
     }
-}
-
-export default function day5() {
-    part1();
-    part2();
 }

@@ -2,6 +2,8 @@
     "compilerOptions": {
         "lib": ["ESNext"],
         "target": "ESNext",
-        "module": "NodeNext"
-    }
+        "module": "NodeNext",
+        "types": ["bun-types"],
+        "baseUrl": "./"
+    },
 }
