@@ -1,8 +1,8 @@
 import {input} from 'src/input';
 
-let [sequence, lines] = input.split('\n\n');
-
 type Node = { node: string, left: string, right: string };
+
+let [sequence, lines] = input.split('\n\n');
 
 const nodes: Node[] = lines.split('\n').map(line => {
     const [node, left, right] = line.match(/[0-9A-Z]+/g);
@@ -11,7 +11,6 @@ const nodes: Node[] = lines.split('\n').map(line => {
 
 function getStepsInPath(node: Node, sequence: string, isPart2 = false) {
     let steps = 0;
-    const isDone = (node: Node) => isPart2 ? node.node.endsWith('Z') : node.node === 'ZZZ';
 
     while (true) {
         for (let direction of sequence) {
@@ -19,9 +18,8 @@ function getStepsInPath(node: Node, sequence: string, isPart2 = false) {
             node = nodes.find(node => node.node === next);
             steps++;
 
-            if (isDone(node)) {
-                return steps;
-            }
+            const done = isPart2 ? node.node.endsWith('Z') : node.node === 'ZZZ';
+            if (done) return steps;
         }
     }
 }
@@ -33,16 +31,11 @@ export function part1() {
 
 export function part2() {
     const startingNodes = nodes.filter(node => node.node.endsWith('A'));
-    const stepsPerPath = startingNodes.map(node => getStepsInPath(node, sequence, true));
-    return lcmInArray(stepsPerPath);
+    const stepCounts = startingNodes.map(node => getStepsInPath(node, sequence, true));
+    return stepCounts.reduce((acc, steps) => lcm(acc, steps), stepCounts.shift());
 }
 
-function lcmInArray(arr: number[]) {
-    function lcm(a: number, b: number) {
-        const gcd = (a: number, b: number) => b === 0 ? a : gcd(b, a % b);
-        return (a * b) / gcd(a, b);
-    }
-
-    const first = arr.shift();
-    return arr.reduce((acc, steps) => lcm(acc, steps), first);
+function lcm(a: number, b: number) {
+    const gcd = (a: number, b: number) => b === 0 ? a : gcd(b, a % b);
+    return (a * b) / gcd(a, b);
 }
