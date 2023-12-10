@@ -1,120 +1,113 @@
-import {input} from 'src/input';
+import { input } from 'src/input';
 
-const direction: { [name: string]: [number, number] } = {
-    UP: [0, -1],
-    DOWN: [0, 1],
-    LEFT: [-1, 0],
-    RIGHT: [1, 0],
-}
+type Position = [number, number];
 
-const dirConnections = {
-    UP: '|F7',
-    DOWN: '|LJ',
-    LEFT: '-LF',
-    RIGHT: '-J7'
-}
+type Tile = {
+    char: string;
+    visited: boolean;
+    isStartTile?: boolean;
+};
 
-const dirMap = {
+let startPos: Position;
+let startTile: Tile;
+
+const grid: Tile[][] = input.split('\n').map((line, y) => {
+    return line.split('').map((char, x) => {
+        let tile: Tile = { char, visited: false };
+        if (char === 'S') {
+            startPos = [x, y];
+            tile.isStartTile = true;
+            startTile = tile;
+        }
+
+        return tile;
+    })
+});
+
+const connectionMap = {
     '|': [
-        { dir: direction.UP, con: dirConnections.UP },
-        { dir: direction.DOWN, con: dirConnections.DOWN }
+        { direction: 'UP', connectsTo: '|F7' },
+        { direction: 'DOWN', connectsTo: '|LJ' }
     ],
     '-': [
-        { dir: direction.LEFT, con: dirConnections.LEFT },
-        { dir: direction.RIGHT, con: dirConnections.RIGHT }
+        { direction: 'LEFT', connectsTo: 'LF-' },
+        { direction: 'RIGHT', connectsTo: 'J7-' }
     ],
     'L': [
-        { dir: direction.UP, con: dirConnections.UP },
-        { dir: direction.RIGHT, con: dirConnections.RIGHT }
+        { direction: 'UP', connectsTo: '|F7' },
+        { direction: 'RIGHT', connectsTo: 'J7-' }
     ],
     'J': [
-        { dir: direction.UP, con: dirConnections.UP },
-        { dir: direction.LEFT, con: dirConnections.LEFT }
+        { direction: 'UP', connectsTo: '|F7' },
+        { direction: 'LEFT', connectsTo: 'LF-' }
     ],
     '7': [
-        { dir: direction.DOWN, con: dirConnections.DOWN },
-        { dir: direction.LEFT, con: dirConnections.LEFT }
+        { direction: 'DOWN', connectsTo: '|LJ' },
+        { direction: 'LEFT', connectsTo: 'LF-' }
     ],
     'F': [
-        { dir: direction.DOWN, con: dirConnections.DOWN },
-        { dir: direction.RIGHT, con: dirConnections.RIGHT }
+        { direction: 'DOWN', connectsTo: '|LJ' },
+        { direction: 'RIGHT', connectsTo: 'J7-' }
     ],
+} as const;
+
+function move([x, y], direction: 'UP' | 'DOWN' | 'LEFT' | 'RIGHT'): Position {
+    if (direction === 'UP') return [x, y - 1];
+    if (direction === 'DOWN') return [x, y + 1];
+    if (direction === 'LEFT') return [x - 1, y];
+    if (direction === 'RIGHT') return [x + 1, y];
 }
 
-let grid: { char: string, visited: boolean }[][] = [];
-let startPos = [];
+function getChar(position: Position) {
+    return Object.keys(connectionMap).find(char => {
+        const connections = connectionMap[char];
+        return connections.every(connection => {
+            const [x, y] = move(position, connection.direction);
+            const tile = grid[y][x];
 
-for (const line of input.split('\n')) {
-    grid.push(line.split('').map(char => ({ char, visited: false })));
-}
-
-grid.forEach((row, y) => {
-    row.forEach((cell, x) => {
-        if (cell.char === 'S') {
-            startPos = [x, y];
-        }
+            return connection.connectsTo.includes(tile.char);
+        });
     });
-})
-
-function getNextConnection(char: string, pos: [number, number]) {
-    const dirs = dirMap[char];
-
-    const validConnections = dirs.filter(dir => {
-        const x = pos[0] + dir.dir[0];
-        const y = pos[1] + dir.dir[1];
-        const next = grid[y][x];
-
-        return next && !next.visited && dir.con.includes(next.char);
-    });
-
-    return validConnections[0];
 }
 
+startTile.char = getChar(startPos);
+
+// State vars
+let position = startPos;
+let tile = startTile;
 let steps = 0;
 let polygon = [startPos];
 
+// Walk path
+do {
+    for (const connection of connectionMap[tile.char]) {
+        const [x, y] = move(position, connection.direction);
+        const nextTile = grid[y][x];
 
-// TODO: get startchar programatically
-const startChar = '-';
-
-let position = [...startPos] as [number, number];
-let char = startChar;
-
-while(true) {
-    const next = getNextConnection(char, position);
-    steps++;
-
-    if (!next) {
-        // means we reached start again
-        polygon.push(startPos);
-        break;
+        if (!nextTile.visited && connection.connectsTo.includes(nextTile.char)) {
+            nextTile.visited = true;
+            position = [x, y];
+            tile = nextTile;
+            steps++;
+            polygon.push(position);
+            break;
+        }
     }
+} while (!tile.isStartTile);
 
-    position = [
-        position[0] + next.dir[0],
-        position[1] + next.dir[1]
-    ];
 
-    char = grid[position[1]][position[0]].char;
-    grid[position[1]][position[0]].visited = true;
-    polygon.push(position);
-}
-
-// 6860
 export function part1() {
     return steps / 2;
 }
 
-// 343
 export function part2() {
     let count = 0;
 
     for (let y = 0; y < grid.length; y++) {
         const row = grid[y];
         for (let x = 0; x < row.length; x++) {
-            const isEdge = polygon.some(p => p[0] === x && p[1] === y);
-
-            if (!isEdge && isInsidePolygon([x, y], polygon)) {
+            const tile = grid[y][x];
+            if (!tile.visited && isInsidePolygon([x, y], polygon)) {
                 count++;
             }
         }
@@ -123,12 +116,10 @@ export function part2() {
     return count;
 }
 
-
-// credit: https://www.npmjs.com/package/point-in-polygon
+// ray-casting algorithm based on
+// https://wrf.ecse.rpi.edu/Research/Short_Notes/pnpoly.html
+// https://www.npmjs.com/package/point-in-polygon
 function isInsidePolygon(point, polygon) {
-    // ray-casting algorithm based on
-    // https://wrf.ecse.rpi.edu/Research/Short_Notes/pnpoly.html
-
     var x = point[0], y = point[1];
 
     var inside = false;
