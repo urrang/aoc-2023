@@ -1,8 +1,9 @@
 import { setInput } from './input';
 
-const day = process.argv[2];
+let day = process.argv[2];
 
 if (day) {
+    if (day.length === 1) day = '0' + day;
     startDay();
 } else {
     console.log('Please specify a day to run.');
