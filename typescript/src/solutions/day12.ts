@@ -1,35 +1,22 @@
 import {input} from 'src/input';
 
-interface Row {
-    springs: string;
-    damagedGroupSizes: number[];
-}
-
-const exampleInput = `???.### 1,1,3
-.??..??...?##. 1,1,3
-?#?#?#?#?#?#?#? 1,3,1,6
-????.#...#... 4,1,1
-????.######..#####. 1,6,5
-?###???????? 3,2,1`;
-
-
-const rows: Row[] = input.split('\n').map(line => {
-    let [springs, damagedGroupSizes] = line.split(' ');
+const rows = input.split('\n').map(line => {
+    let [springs, groupSizes] = line.split(' ');
 
     return {
         springs: springs,
-        damagedGroupSizes: damagedGroupSizes.split(',').map(Number)
+        groupSizes: groupSizes.split(',').map(Number)
     }
 });
 
 const cache = new Map<string, number>();
 
-function countOptions(springs: string, damagedGroupSizes: number[]) {
-    if (!damagedGroupSizes.length) {
+function countOptions(springs: string, groupSizes: number[]) {
+    if (!groupSizes.length) {
         return !springs.includes('#') ? 1 : 0;
     }
 
-    const key = `${springs}-${damagedGroupSizes}`;
+    const key = `${springs}-${groupSizes}`;
 
     if (cache.has(key)) {
         return cache.get(key)!;
@@ -37,11 +24,11 @@ function countOptions(springs: string, damagedGroupSizes: number[]) {
 
     let count = 0;
 
-    const [size, ...rest] = damagedGroupSizes;
+    const [size, ...rest] = groupSizes;
 
-    const possibleIndexes = getPossibleIndexes(springs, size);
+    const validIndexes = getValidIndexes(springs, size);
 
-    for (const index of possibleIndexes) {
+    for (const index of validIndexes) {
         count += countOptions(springs.slice(index + size + 1), rest);
     }
 
@@ -51,19 +38,18 @@ function countOptions(springs: string, damagedGroupSizes: number[]) {
 
 const regex = /^[#?]+$/;
 
-function getPossibleIndexes(text: string, count) {
-    // If we step over a # we have to use it
+function getValidIndexes(text: string, count) {
     const hashIndex = text.indexOf('#');
-    let maxEndIndex = hashIndex === -1 ? text.length - 1 : hashIndex + count - 1;
+    const indexes = [];
 
-    let indexes = [];
     for (let i = 0; i <= text.length - count; i++) {
+        // No start indexes after a # are valid
+        if (hashIndex >= 0 && i > hashIndex) break;
+
+        // If the spring following this group is broken it's not valid
+        if (text.charAt(i + count) === '#') continue;
+
         if (regex.test(text.slice(i, i + count))) {
-            if (i + count > maxEndIndex + 1) continue;
-
-            // If the next character is a # we can't use this index
-            if (text.charAt(i + count) === '#') continue;
-
             indexes.push(i);
         }
     }
@@ -72,16 +58,16 @@ function getPossibleIndexes(text: string, count) {
 }
 
 export function part1() {
-    return rows.reduce((sum, row) => sum + countOptions(row.springs, row.damagedGroupSizes), 0);
+    return rows.reduce((sum, row) => sum + countOptions(row.springs, row.groupSizes), 0);
 }
 
 export function part2() {
-    const unfolded: Row[] = rows.map(({springs, damagedGroupSizes}) => {
+    const unfolded = rows.map(({springs, groupSizes}) => {
         return {
             springs: `${springs}?${springs}?${springs}?${springs}?${springs}`,
-            damagedGroupSizes: [...damagedGroupSizes, ...damagedGroupSizes, ...damagedGroupSizes, ...damagedGroupSizes, ...damagedGroupSizes]
+            groupSizes: [...groupSizes, ...groupSizes, ...groupSizes, ...groupSizes, ...groupSizes]
         }
     });
 
-    return unfolded.reduce((sum, row) => sum + countOptions(row.springs, row.damagedGroupSizes), 0);
+    return unfolded.reduce((sum, row) => sum + countOptions(row.springs, row.groupSizes), 0);
 }
