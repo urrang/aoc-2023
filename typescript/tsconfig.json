@@ -4,6 +4,7 @@
         "target": "ESNext",
         "module": "NodeNext",
         "types": ["bun-types"],
-        "baseUrl": "./"
+        "baseUrl": "./",
+		"strict": false
     },
 }

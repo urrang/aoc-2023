@@ -9,5 +9,8 @@
   "license": "ISC",
   "devDependencies": {
     "bun-types": "latest"
+  },
+  "dependencies": {
+    "ts-priority-queue": "^0.1.1"
   }
 }
