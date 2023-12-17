@@ -15,11 +15,17 @@ const exampleInput = `2413432311323
 2546548887735
 4322674655533`;
 
-type Direction = 'UP' | 'DOWN' | 'LEFT' | 'RIGHT';
-type Node = { x: number, y: number, cost: number, dir?: Direction, dirCount?: number };
+const exampleInput2 = `111111111111
+999999999991
+999999999991
+999999999991
+999999999991`
 
-const grid = exampleInput.split('\n').map((row) => {
-	return row.split('').map((cell) => ({ weight: Number(cell), visited: false }))
+type Direction = 'UP' | 'DOWN' | 'LEFT' | 'RIGHT';
+type Node = { x: number, y: number, heat: number, direction?: Direction, dirCount?: number };
+
+const grid = input.split('\n').map((row) => {
+	return row.split('').map((cell) => Number(cell))
 });
 
 const yMax = grid.length - 1;
@@ -41,47 +47,44 @@ function isReverse(prev: Direction, current: Direction) {
 }
 
 function solve(dirMin: number, dirMax: number) {
-	const queue = new PriorityQueue({ comparator: (a: Node, b: Node) => a.cost - b.cost });
+	const queue = new PriorityQueue({ comparator: (a: Node, b: Node) => a.heat - b.heat });
 
 	const visited = new Set<string>();
 
-	let currentNode: Node = { x: 0, y: 0, cost: 0 };
-	
-	while (currentNode) {
-		if (currentNode.x === xMax && currentNode.y === yMax && currentNode.dirCount >= dirMin) break;	
+	queue.queue({ x: 0, y: 0, heat: 0, direction: undefined, dirCount: 0  })
 
-		const key = `${currentNode.x},${currentNode.y},${currentNode.dir},${currentNode.dirCount}`;
-		if (visited.has(key)) {
-			currentNode = queue.dequeue();
-			continue;
+	while (queue.length) {
+		const node = queue.dequeue();
+
+		if (node.x === xMax && node.y === yMax && node.dirCount >= dirMin) {
+			return node.heat
 		}
 
-		visited.add(key);
+		const key = `${node.x},${node.y},${node.direction},${node.dirCount}`;
+
+		if (visited.has(key.toString())) continue;
+
+		visited.add(key.toString());
 
 		for (const direction of directions) {
-			if (isReverse(currentNode.dir, direction.dir)) continue;
+			if (isReverse(node.direction, direction.dir)) continue;
 
-			const isSameDirection = direction.dir === currentNode.dir;
-			const dirCount = isSameDirection ? currentNode.dirCount + 1 : 1;
-			
-			if (currentNode.dir) {
-				if (dirCount < dirMin && !isSameDirection && !currentNode.dir) continue;
-				if (dirCount > dirMax && isSameDirection) continue;
+			const isSameDirection = direction.dir === node.direction;
+
+			if (node.direction) {
+				if (node.dirCount < dirMin && !isSameDirection) continue;
+				if (node.dirCount + 1 > dirMax && isSameDirection) continue;
 			}
 			
-			const y = currentNode.y + direction.y;
-			const x = currentNode.x + direction.x;
+			const y = node.y + direction.y;
+			const x = node.x + direction.x;
 
 			if (x >= 0 && x <= xMax && y >= 0 && y <= yMax) {
-				queue.queue({ x, y, cost: currentNode.cost + grid[y][x].weight, dirCount, dir: direction.dir });
+				const dirCount = isSameDirection ? node.dirCount + 1 : 1;
+				queue.queue({ x, y, heat: node.heat + grid[y][x], direction: direction.dir, dirCount: dirCount });
 			}
 		}
-
-		currentNode = queue.dequeue();
 	}
-
-	return currentNode.cost;
-
 }
 
 export function part1() {
