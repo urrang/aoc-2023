@@ -6,5 +6,5 @@
         "types": ["bun-types"],
         "baseUrl": "./",
 		"strict": false
-    },
+    }
 }
