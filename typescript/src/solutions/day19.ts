@@ -1,7 +1,8 @@
 import {input} from 'src/input';
 
+type RuleCondition = { field: string, operator: '>' | '<', value: number };
 type Rule = { 
-	condition?: { field: string, operator: '>' | '<', value: number },
+	condition?: RuleCondition;
 	result: string | 'A' | 'R';
 };
 
@@ -107,6 +108,68 @@ export function part1() {
 	}, 0)
 }
 
-export function part2() {
+type ConditionSet = { conditions: RuleCondition[], valid: boolean };
 
+const conditionSets: ConditionSet[] = [];
+
+function checkToEnd(conditionSet: ConditionSet, workflow: Rule[]) {
+	workflow.forEach((rule, index) => {
+		const conditions = [...conditionSet.conditions];
+
+		// Add the reverse of any conditions prior, since they didn't match
+		for (let i = 0; i < index; i++) {
+			if (workflow[i].condition) {
+				const reversed = { ...workflow[i].condition };
+				if (reversed.operator == '>') {
+					reversed.operator = '<';
+					reversed.value = reversed.value + 1;
+				} else {
+					reversed.operator = '>';
+					reversed.value = reversed.value - 1;
+				}
+
+				conditions.push(reversed);
+			}
+		}
+
+		if (rule.condition) {
+			conditions.push(rule.condition);
+		}
+
+		if (rule.result === 'A' || rule.result === 'R') {
+			conditionSets.push({ conditions, valid: rule.result === 'A' });
+		} else {
+			checkToEnd({ conditions, valid: true }, workflows[rule.result]);
+		}
+	});
+}
+
+export function part2() {
+	checkToEnd({ conditions: [], valid: true }, workflows.in);
+	
+	let sum = 0;
+
+	for (const conditionSet of conditionSets.filter(c => c.valid)) {
+		const minMax = {
+			x: { min: 1, max: 4000 },
+			m: { min: 1, max: 4000 },
+			a: { min: 1, max: 4000 },
+			s: { min: 1, max: 4000 },
+		};
+
+		for (const condition of conditionSet.conditions) {
+			const range = minMax[condition.field];
+			if (condition.operator === '>') {
+				range.min = Math.max(range.min, condition.value + 1);
+			} else {
+				range.max = Math.min(range.max, condition.value - 1);
+			}
+		}
+
+		sum += Object.values(minMax).reduce((count, range) => {
+			return count * (range.max - range.min + 1);
+		}, 1)
+	}
+
+	return sum;
 }
